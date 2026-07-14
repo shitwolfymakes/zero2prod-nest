@@ -1,0 +1,10 @@
+# configuration.yaml
+application_port: 8000
+database:
+  host: "127.0.0.1"
+  port: 5432
+  username: "postgres"
+  password: "password"
+  # A database of its own: the Rust original manages `newsletter` with sqlx, and
+  # two migration ledgers must not meet in one database.
+  database_name: "newsletter_nest"
