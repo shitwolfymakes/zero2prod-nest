@@ -71,7 +71,6 @@ jobs:
           cache: npm
       - run: npm ci
       - name: Audit dependencies
-        # Scope to what actually ships. Dev-only tooling (e.g. Testcontainers'
-        # Docker client) pulls transitive advisories that don't reach the
-        # deployed artifact and shouldn't gate the pipeline.
-        run: npm audit --omit=dev --audit-level=high
+        # Audit the whole tree and fail only on high+ advisories. Remaining
+        # dev-only advisories are moderate (drizzle-kit) and don't gate.
+        run: npm audit --audit-level=high
