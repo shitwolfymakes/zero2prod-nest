@@ -35,13 +35,13 @@ describe('zero2prod (e2e)', () => {
   });
 
   describe('POST /subscriptions', () => {
-    it('returns 201 and persists the subscriber for valid form data', async () => {
+    it('returns 200 and persists the subscriber for valid form data', async () => {
       const response = await request(http)
         .post('/subscriptions')
         .type('form')
         .send({ email: 'ursula_k_le_guin@gmail.com', name: 'le guin' });
 
-      expect(response.status).toBe(HttpStatus.CREATED);
+      expect(response.status).toBe(HttpStatus.OK);
 
       const saved = await ctx.db
         .select({ email: subscriptions.email, name: subscriptions.name })
@@ -69,16 +69,44 @@ describe('zero2prod (e2e)', () => {
       expect(response.status).toBe(HttpStatus.BAD_REQUEST);
     });
 
-    it('returns 409 when the email is already subscribed', async () => {
+    it('is idempotent: re-subscribing the same email succeeds without duplicating', async () => {
       const payload = { email: 'ursula_k_le_guin@gmail.com', name: 'le guin' };
 
-      await request(http).post('/subscriptions').type('form').send(payload);
-      const response = await request(http)
+      const first = await request(http)
+        .post('/subscriptions')
+        .type('form')
+        .send(payload);
+      const second = await request(http)
         .post('/subscriptions')
         .type('form')
         .send(payload);
 
-      expect(response.status).toBe(HttpStatus.CONFLICT);
+      expect(first.status).toBe(HttpStatus.OK);
+      expect(second.status).toBe(HttpStatus.OK);
+
+      const saved = await ctx.db.select().from(subscriptions);
+      expect(saved).toHaveLength(1);
+    });
+
+    it('re-subscribing with a new name updates it and keeps the original timestamp', async () => {
+      const email = 'ursula_k_le_guin@gmail.com';
+
+      await request(http)
+        .post('/subscriptions')
+        .type('form')
+        .send({ email, name: 'le guin' });
+      const [original] = await ctx.db.select().from(subscriptions);
+
+      await request(http)
+        .post('/subscriptions')
+        .type('form')
+        .send({ email, name: 'Ursula K. Le Guin' });
+      const saved = await ctx.db.select().from(subscriptions);
+
+      expect(saved).toHaveLength(1);
+      expect(saved[0].name).toBe('Ursula K. Le Guin');
+      expect(saved[0].id).toBe(original.id);
+      expect(saved[0].subscribedAt).toEqual(original.subscribedAt);
     });
   });
 });

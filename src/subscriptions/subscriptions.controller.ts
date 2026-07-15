@@ -13,11 +13,13 @@ export class SubscriptionsController {
   ) {}
 
   @Post()
-  @HttpCode(HttpStatus.CREATED)
+  // Idempotent: subscribing an already-subscribed email succeeds the same way,
+  // so this returns 200 rather than 201 (a repeat creates nothing).
+  @HttpCode(HttpStatus.OK)
   async subscribe(@Body() dto: CreateSubscriptionDto): Promise<void> {
     // Attach the subscriber to every log line for the rest of this request.
     this.logger.assign({ subscriber_email: dto.email });
-    this.logger.info('Adding a new subscriber');
-    await this.subscriptions.create(dto);
+    this.logger.info('Subscribing an email');
+    await this.subscriptions.subscribe(dto);
   }
 }

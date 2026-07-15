@@ -33,7 +33,7 @@ If Postgres is already running, skip the Docker step with `SKIP_DOCKER=true ./sc
 | Method & path        | Behaviour                                                                 |
 | -------------------- | ------------------------------------------------------------------------- |
 | `GET /health`        | `@nestjs/terminus` readiness check; pings the DB and returns its status.  |
-| `POST /subscriptions`| `application/x-www-form-urlencoded` `{ email, name }`. `201` on success, `400` on invalid input, `409` if the email is already subscribed. |
+| `POST /subscriptions`| `application/x-www-form-urlencoded` `{ email, name }`. `200` on success, `400` on invalid input. Idempotent: re-subscribing an email succeeds and updates the stored name, without creating a duplicate. |
 
 ## Configuration
 
@@ -93,13 +93,13 @@ Same app, idiomatic-per-ecosystem implementation:
 | `tracing` + `tracing-bunyan-formatter`       | `pino` via `nestjs-pino` (both line-delimited JSON)            |
 | `tracing-actix-web` request spans            | `pino-http` request logging + `request_id`                     |
 | hand-rolled empty-200 `/health_check`        | `@nestjs/terminus` `/health` with a real DB readiness indicator |
-| `500` on any insert error                    | typed errors — `409 Conflict` on duplicate email, `400` on invalid input |
+| `500` on any insert error                    | idempotent upsert — re-subscribing returns `200` and updates the name; `400` on invalid input |
 | `tests/health_check.rs` + `spawn_app`        | `Test.createTestingModule` + supertest + Testcontainers        |
 
 The deliberate departures from a 1:1 port are the idiomatic-NestJS choices:
 env-based config over YAML, DI-provided Drizzle over a hand-passed pool, Terminus
-health checks, Testcontainers for integration tests, and mapping domain errors to
-proper HTTP status codes (`201`/`400`/`409`) instead of a blanket `500`.
+health checks, Testcontainers for integration tests, and treating subscription as
+an idempotent upsert (safe to retry) rather than erroring on a repeat.
 
 One thing worth calling out: `sqlx::query!` validates SQL against a live database
 at compile time. Drizzle has no equivalent — its safety comes from the schema's
