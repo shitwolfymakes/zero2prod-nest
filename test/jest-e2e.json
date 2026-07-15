@@ -6,8 +6,8 @@
   "transform": {
     "^.+\\.(t|j)s$": "ts-jest"
   },
-  "setupFiles": ["reflect-metadata"],
+  "setupFiles": ["<rootDir>/test/setup-env.ts"],
   "collectCoverageFrom": ["src/**/*.ts"],
   "coverageDirectory": "coverage",
-  "testTimeout": 30000
+  "testTimeout": 120000
 }

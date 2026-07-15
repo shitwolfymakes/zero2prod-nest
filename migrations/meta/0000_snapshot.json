@@ -1,5 +1,5 @@
 {
-  "id": "e369ebaf-ef68-4b0a-b063-018979321f5b",
+  "id": "7f0dd32e-47f7-4db8-8cbd-7ca5604b7a27",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -12,7 +12,8 @@
           "name": "id",
           "type": "uuid",
           "primaryKey": true,
-          "notNull": true
+          "notNull": true,
+          "default": "gen_random_uuid()"
         },
         "email": {
           "name": "email",
@@ -30,7 +31,8 @@
           "name": "subscribed_at",
           "type": "timestamp with time zone",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "default": "now()"
         }
       },
       "indexes": {},

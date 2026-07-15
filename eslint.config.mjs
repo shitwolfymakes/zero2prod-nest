@@ -1,6 +1,6 @@
 // eslint.config.mjs
 import eslint from '@eslint/js';
-import eslintPluginPrettierRecommended from 'eslint-config-prettier';
+import eslintConfigPrettier from 'eslint-config-prettier';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
@@ -10,7 +10,7 @@ export default tseslint.config(
   },
   eslint.configs.recommended,
   ...tseslint.configs.recommendedTypeChecked,
-  eslintPluginPrettierRecommended,
+  eslintConfigPrettier,
   {
     languageOptions: {
       globals: {
@@ -24,11 +24,6 @@ export default tseslint.config(
     },
     rules: {
       '@typescript-eslint/no-explicit-any': 'error',
-      '@typescript-eslint/no-empty-function': [
-        'error',
-        // `healthCheck()` is deliberately empty: a 200 with no body.
-        { allow: ['methods'] },
-      ],
     },
   },
 );

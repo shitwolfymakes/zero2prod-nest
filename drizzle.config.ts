@@ -1,20 +1,16 @@
-//! drizzle.config.ts
+import 'dotenv/config';
+
 import { defineConfig } from 'drizzle-kit';
 
-import { getConfiguration } from './src/configuration/configuration';
-
-// `drizzle-kit` talks to the database directly (to generate and apply
-// migrations), so it reads the same `configuration.yaml` the application does.
-// `DATABASE_URL` wins when set, which is what `scripts/init_db.sh` and CI use.
-const url =
-  process.env.DATABASE_URL ??
-  getConfiguration().database.connectionString().exposeSecret();
+if (!process.env.DATABASE_URL) {
+  throw new Error('DATABASE_URL must be set (see .env)');
+}
 
 export default defineConfig({
   dialect: 'postgresql',
-  schema: './src/db/schema.ts',
+  schema: './src/database/schema.ts',
   out: './migrations',
-  dbCredentials: { url },
+  dbCredentials: { url: process.env.DATABASE_URL },
   strict: true,
   verbose: true,
 });
