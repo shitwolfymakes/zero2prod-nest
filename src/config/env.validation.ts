@@ -1,5 +1,6 @@
 import { plainToInstance, Type } from 'class-transformer';
 import {
+  IsBoolean,
   IsEnum,
   IsInt,
   IsString,
@@ -46,6 +47,27 @@ export class EnvironmentVariables {
     message: 'DATABASE_URL must be a postgres:// connection string',
   })
   DATABASE_URL!: string;
+
+  // Whether the Postgres connection requires TLS. Managed providers (RDS,
+  // Supabase, etc.) typically need this; local/Testcontainers Postgres doesn't.
+  @Type(() => Boolean)
+  @IsBoolean()
+  DATABASE_SSL = false;
+
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  DATABASE_POOL_MAX = 10;
+
+  @Type(() => Number)
+  @IsInt()
+  @Min(0)
+  DATABASE_POOL_IDLE_TIMEOUT_MS = 30_000;
+
+  @Type(() => Number)
+  @IsInt()
+  @Min(0)
+  DATABASE_POOL_CONNECTION_TIMEOUT_MS = 5_000;
 
   @IsEnum(LogLevel)
   LOG_LEVEL: LogLevel = LogLevel.Info;
